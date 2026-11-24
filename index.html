@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#122936">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="description" content="Personal CIA Part 2 study sessions, exam practice, and podcast player.">
+  <title>CIA Part 2 Study Desk</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="mast"><div class="wrap brand"><span class="brand-icon" aria-hidden="true">Ⅱ</span><div><strong>CIA Study Desk</strong><small>Part 2 · Internal Audit Engagement</small></div></div></header>
+  <main id="main" class="wrap" tabindex="-1">
+    <section id="study" aria-labelledby="study-title">
+      <div class="hero"><p class="eyebrow">YOUR STUDY PLAN</p><h1 id="study-title">Study for Part 2</h1><p>Build confidence one session at a time.</p><div id="summary" class="metrics"></div></div>
+      <div id="setup" class="card">
+        <h2>Start a session</h2><div id="resume-session"></div>
+        <form id="session-form">
+          <fieldset><legend>Mode</legend><div class="modes">
+            <label class="mode"><input type="radio" name="mode" value="practice" checked><span><strong>Practice</strong><small>Immediate feedback</small></span></label>
+            <label class="mode"><input type="radio" name="mode" value="exam"><span><strong>Exam simulation</strong><small>Timed, weighted questions</small></span></label>
+            <label class="mode"><input type="radio" name="mode" value="missed"><span><strong>Review missed</strong><small>Revisit answers to improve</small></span></label>
+          </div></fieldset>
+          <div id="session-settings" class="controls"><label>Questions<select id="amount"><option>10</option><option>20</option><option>40</option><option>60</option><option>125</option></select></label><label>Timer<select id="timing"><option value="0">Off</option><option value="1">Exam pace</option></select></label></div>
+          <p id="exam-note" class="muted" hidden>125 questions · 150 minutes · 50 / 40 / 10 blueprint.</p>
+          <details id="topic-picker"><summary>Choose units and subunits <span id="topic-count"></span></summary><div class="actions"><button type="button" data-topics="all" class="quiet">Select all</button><button type="button" data-topics="none" class="quiet">Clear</button></div><div id="topics"></div></details>
+          <p id="setup-note" class="status" aria-live="polite"></p>
+          <button id="start" class="primary wide">Start practice</button>
+        </form>
+      </div>
+      <section id="quiz" hidden aria-label="Study session"></section>
+      <section id="results" hidden aria-label="Session results"></section>
+    </section>
+    <section id="listen" hidden aria-labelledby="listen-title"><div class="page-head"><p class="eyebrow">AUDIO STUDY</p><h1 id="listen-title">Podcasts</h1><p>Listen by study unit and pick up where you left off.</p></div><div class="card"><label>Study unit<select id="podcast-unit"></select></label><div id="episodes" class="episodes"></div><div id="now-playing" hidden><h2 id="track-title">Now playing</h2><audio id="audio" controls preload="metadata"></audio><div class="actions"><button id="next-track" class="quiet">Next episode</button><label class="inline"><input id="autoplay" type="checkbox" checked>Autoplay</label><label class="inline">Speed <select id="speed" aria-label="Playback speed"><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>2</option></select></label></div><p id="audio-status" role="status"></p></div></div></section>
+    <section id="progress" hidden aria-labelledby="progress-title"><div class="page-head"><p class="eyebrow">YOUR RESULTS</p><h1 id="progress-title">Progress</h1><p>See what you’ve covered and where to practise next.</p></div><div class="card" id="progress-content"></div></section>
+    <section id="data" hidden aria-labelledby="data-title"><div class="page-head"><p class="eyebrow">SETUP</p><h1 id="data-title">Question bank</h1><p>Import your Part 2 study material on this device.</p></div><div class="card"><h2>Import study material</h2><p>Choose the Part 2 study ZIP to load the questions and diagrams together. You can also choose a JSON file and its images.</p><label class="file-pick">Choose ZIP, JSON or images<input id="bank-file" type="file" multiple accept=".zip,.json,image/png,image/jpeg,image/gif,image/webp"></label><p id="import-status" class="status" aria-live="polite"></p><p class="muted">Your imported files, quiz history, and audio position are saved in this browser. Import again on another device.</p></div></section>
+  </main>
+  <nav class="dock" aria-label="Main navigation"><div class="wrap nav-inner">
+    <button data-page="study" aria-current="page"><span aria-hidden="true">▤</span>Study</button>
+    <button data-page="listen"><span aria-hidden="true">♫</span>Podcasts</button>
+    <button data-page="progress"><span aria-hidden="true">◴</span>Progress</button>
+    <button data-page="data"><span aria-hidden="true">⤓</span>Bank</button>
+  </div></nav>
+</body>
+</html>

@@ -1,0 +1,544 @@
+{
+  "units": [
+    {
+      "unit": 1,
+      "title": "Basics of a Business",
+      "tracks": [
+        {
+          "id": "1.0",
+          "title": "1.0 Introduction",
+          "file": "Podcast_Unit_01/00_Subunit_1.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "1.1",
+          "title": "1.1 Basics of a Business",
+          "file": "Podcast_Unit_01/01_Subunit_1.1_Basics_of_a_Business.mp3",
+          "ready": false
+        },
+        {
+          "id": "1.2",
+          "title": "1.2 COSO Framework for Internal Control",
+          "file": "Podcast_Unit_01/02_Subunit_1.2_COSO_Framework_for_Internal_Control.mp3",
+          "ready": false
+        },
+        {
+          "id": "1.3",
+          "title": "1.3 Business Model and Processes",
+          "file": "Podcast_Unit_01/03_Subunit_1.3_Business_Model_and_Processes.mp3",
+          "ready": false
+        },
+        {
+          "id": "1.4",
+          "title": "1.4 Automated Information Processing",
+          "file": "Podcast_Unit_01/04_Subunit_1.4_Automated_Information_Processing.mp3",
+          "ready": false
+        },
+        {
+          "id": "1.5",
+          "title": "1.5 Business Risks and Risk Measurement",
+          "file": "Podcast_Unit_01/05_Subunit_1.5_Business_Risks_and_Risk_Measurement.mp3",
+          "ready": false
+        },
+        {
+          "id": "1.6",
+          "title": "1.6 Market Influences",
+          "file": "Podcast_Unit_01/06_Subunit_1.6_Market_Influences.mp3",
+          "ready": false
+        },
+        {
+          "id": "1.7",
+          "title": "1.7 Strategic Management",
+          "file": "Podcast_Unit_01/07_Subunit_1.7_Strategic_Management.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 2,
+      "title": "Components of Internal Audit Engagements",
+      "tracks": [
+        {
+          "id": "2.0",
+          "title": "2.0 Introduction",
+          "file": "Podcast_Unit_02/00_Subunit_2.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "2.1",
+          "title": "2.1 Objectives and Scope",
+          "file": "Podcast_Unit_02/01_Subunit_2.1_Objectives_and_Scope.mp3",
+          "ready": false
+        },
+        {
+          "id": "2.2",
+          "title": "2.2 Evaluation Criteria",
+          "file": "Podcast_Unit_02/02_Subunit_2.2_Evaluation_Criteria.mp3",
+          "ready": false
+        },
+        {
+          "id": "2.3",
+          "title": "2.3 Risk Management Processes",
+          "file": "Podcast_Unit_02/03_Subunit_2.3_Risk_Management_Processes.mp3",
+          "ready": false
+        },
+        {
+          "id": "2.4",
+          "title": "2.4 Engagement Approaches",
+          "file": "Podcast_Unit_02/04_Subunit_2.4_Engagement_Approaches.mp3",
+          "ready": false
+        },
+        {
+          "id": "2.5",
+          "title": "2.5 Project Management",
+          "file": "Podcast_Unit_02/05_Subunit_2.5_Project_Management.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 3,
+      "title": "Controls, Frameworks, Audits, and Business Continuity",
+      "tracks": [
+        {
+          "id": "3.0",
+          "title": "3.0 Introduction",
+          "file": "Podcast_Unit_03/00_Subunit_3.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "3.1",
+          "title": "3.1 Topical Requirements and Emerging IT Risks",
+          "file": "Podcast_Unit_03/01_Subunit_3.1_Topical_Requirements_and_Emerging_IT_Risks.mp3",
+          "ready": false
+        },
+        {
+          "id": "3.2",
+          "title": "3.2 Common IT Systems Controls",
+          "file": "Podcast_Unit_03/02_Subunit_3.2_Common_IT_Systems_Controls.mp3",
+          "ready": false
+        },
+        {
+          "id": "3.3",
+          "title": "3.3 Control Frameworks",
+          "file": "Podcast_Unit_03/03_Subunit_3.3_Control_Frameworks.mp3",
+          "ready": false
+        },
+        {
+          "id": "3.4",
+          "title": "3.4 Security and Privacy Audits",
+          "file": "Podcast_Unit_03/04_Subunit_3.4_Security_and_Privacy_Audits.mp3",
+          "ready": false
+        },
+        {
+          "id": "3.5",
+          "title": "3.5 Business Resilience",
+          "file": "Podcast_Unit_03/05_Subunit_3.5_Business_Resilience.mp3",
+          "ready": false
+        },
+        {
+          "id": "3.6",
+          "title": "3.6 Disaster Recovery Plan (DRP)",
+          "file": "Podcast_Unit_03/06_Subunit_3.6_Disaster_Recovery_Plan_DRP.mp3",
+          "ready": false
+        },
+        {
+          "id": "3.7",
+          "title": "3.7 Business Continuity Management (BCM)",
+          "file": "Podcast_Unit_03/07_Subunit_3.7_Business_Continuity_Management_BCM.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 4,
+      "title": "Cybersecurity Risks and Controls",
+      "tracks": [
+        {
+          "id": "4.0",
+          "title": "4.0 Introduction",
+          "file": "Podcast_Unit_04/00_Subunit_4.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "4.1",
+          "title": "4.1 Cybersecurity Risks",
+          "file": "Podcast_Unit_04/01_Subunit_4.1_Cybersecurity_Risks.mp3",
+          "ready": false
+        },
+        {
+          "id": "4.2",
+          "title": "4.2 Cybersecurity Related Policies and Controls",
+          "file": "Podcast_Unit_04/02_Subunit_4.2_Cybersecurity_Related_Policies_and_Controls.mp3",
+          "ready": false
+        },
+        {
+          "id": "4.3",
+          "title": "4.3 Information Protection",
+          "file": "Podcast_Unit_04/03_Subunit_4.3_Information_Protection.mp3",
+          "ready": false
+        },
+        {
+          "id": "4.4",
+          "title": "4.4 Incident Response Management",
+          "file": "Podcast_Unit_04/04_Subunit_4.4_Incident_Response_Management.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 5,
+      "title": "Accounting Concepts",
+      "tracks": [
+        {
+          "id": "5.0",
+          "title": "5.0 Introduction",
+          "file": "Podcast_Unit_05/00_Subunit_5.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "5.1",
+          "title": "5.1 Concepts of Financial Accounting",
+          "file": "Podcast_Unit_05/01_Subunit_5.1_Concepts_of_Financial_Accounting.mp3",
+          "ready": false
+        },
+        {
+          "id": "5.2",
+          "title": "5.2 Financial Statements",
+          "file": "Podcast_Unit_05/02_Subunit_5.2_Financial_Statements.mp3",
+          "ready": false
+        },
+        {
+          "id": "5.3",
+          "title": "5.3 Advanced Finance and Accounting Concepts",
+          "file": "Podcast_Unit_05/03_Subunit_5.3_Advanced_Finance_and_Accounting_Concepts.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 6,
+      "title": "Accounting and Performance Measures",
+      "tracks": [
+        {
+          "id": "6.0",
+          "title": "6.0 Introduction",
+          "file": "Podcast_Unit_06/00_Subunit_6.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "6.1",
+          "title": "6.1 Accrual Basis of Accounting",
+          "file": "Podcast_Unit_06/01_Subunit_6.1_Accrual_Basis_of_Accounting.mp3",
+          "ready": false
+        },
+        {
+          "id": "6.2",
+          "title": "6.2 Accounting Systems and Processes",
+          "file": "Podcast_Unit_06/02_Subunit_6.2_Accounting_Systems_and_Processes.mp3",
+          "ready": false
+        },
+        {
+          "id": "6.3",
+          "title": "6.3 Business Performance Measures",
+          "file": "Podcast_Unit_06/03_Subunit_6.3_Business_Performance_Measures.mp3",
+          "ready": false
+        },
+        {
+          "id": "6.4",
+          "title": "6.4 Performance Management Techniques",
+          "file": "Podcast_Unit_06/04_Subunit_6.4_Performance_Management_Techniques.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 7,
+      "title": "Business Processes and Cycles",
+      "tracks": [
+        {
+          "id": "7.0",
+          "title": "7.0 Introduction",
+          "file": "Podcast_Unit_07/00_Subunit_7.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "7.1",
+          "title": "7.1 Sales-Receivables Cycle",
+          "file": "Podcast_Unit_07/01_Subunit_7.1_Sales_Receivables_Cycle.mp3",
+          "ready": false
+        },
+        {
+          "id": "7.2",
+          "title": "7.2 Purchases-Payables Cycle",
+          "file": "Podcast_Unit_07/02_Subunit_7.2_Purchases_Payables_Cycle.mp3",
+          "ready": false
+        },
+        {
+          "id": "7.3",
+          "title": "7.3 Payroll Cycle",
+          "file": "Podcast_Unit_07/03_Subunit_7.3_Payroll_Cycle.mp3",
+          "ready": false
+        },
+        {
+          "id": "7.4",
+          "title": "7.4 Other Common Processes",
+          "file": "Podcast_Unit_07/04_Subunit_7.4_Other_Common_Processes.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 8,
+      "title": "Resources and Procedures",
+      "tracks": [
+        {
+          "id": "8.0",
+          "title": "8.0 Introduction",
+          "file": "Podcast_Unit_08/00_Subunit_8.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "8.1",
+          "title": "8.1 Engagement Resources",
+          "file": "Podcast_Unit_08/01_Subunit_8.1_Engagement_Resources.mp3",
+          "ready": false
+        },
+        {
+          "id": "8.2",
+          "title": "8.2 Engagement Work Program",
+          "file": "Podcast_Unit_08/02_Subunit_8.2_Engagement_Work_Program.mp3",
+          "ready": false
+        },
+        {
+          "id": "8.3",
+          "title": "8.3 Engagement Procedures",
+          "file": "Podcast_Unit_08/03_Subunit_8.3_Engagement_Procedures.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 9,
+      "title": "Risk Assessment",
+      "tracks": [
+        {
+          "id": "9.0",
+          "title": "9.0 Introduction",
+          "file": "Podcast_Unit_09/00_Subunit_9.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "9.1",
+          "title": "9.1 Key Risks and Controls",
+          "file": "Podcast_Unit_09/01_Subunit_9.1_Key_Risks_and_Controls.mp3",
+          "ready": false
+        },
+        {
+          "id": "9.2",
+          "title": "9.2 Topical Requirements",
+          "file": "Podcast_Unit_09/02_Subunit_9.2_Topical_Requirements.mp3",
+          "ready": false
+        },
+        {
+          "id": "9.3",
+          "title": "9.3 Pervasive and Emerging Risks",
+          "file": "Podcast_Unit_09/03_Subunit_9.3_Pervasive_and_Emerging_Risks.mp3",
+          "ready": false
+        },
+        {
+          "id": "9.4",
+          "title": "9.4 Evaluating and Prioritizing Risks and Controls",
+          "file": "Podcast_Unit_09/04_Subunit_9.4_Evaluating_and_Prioritizing_Risks_and_Controls.mp3",
+          "ready": false
+        },
+        {
+          "id": "9.5",
+          "title": "9.5 Effects of Changes on Risk",
+          "file": "Podcast_Unit_09/05_Subunit_9.5_Effects_of_Changes_on_Risk.mp3",
+          "ready": false
+        },
+        {
+          "id": "9.6",
+          "title": "9.6 Effects of Organizational Structures and Environments",
+          "file": "Podcast_Unit_09/06_Subunit_9.6_Effects_of_Organizational_Structures_and_Environments.mp3",
+          "ready": false
+        },
+        {
+          "id": "9.7",
+          "title": "9.7 Effect of Organizational Culture on the Control Environment",
+          "file": "Podcast_Unit_09/07_Subunit_9.7_Effect_of_Organizational_Culture_on_the_Control_Environment.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 10,
+      "title": "Information Gathering",
+      "tracks": [
+        {
+          "id": "10.0",
+          "title": "10.0 Introduction",
+          "file": "Podcast_Unit_10/00_Subunit_10.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "10.1",
+          "title": "10.1 The Qualities of Information",
+          "file": "Podcast_Unit_10/01_Subunit_10.1_The_Qualities_of_Information.mp3",
+          "ready": false
+        },
+        {
+          "id": "10.2",
+          "title": "10.2 Sources and Nature of Information",
+          "file": "Podcast_Unit_10/02_Subunit_10.2_Sources_and_Nature_of_Information.mp3",
+          "ready": false
+        },
+        {
+          "id": "10.3",
+          "title": "10.3 Questionnaires",
+          "file": "Podcast_Unit_10/03_Subunit_10.3_Questionnaires.mp3",
+          "ready": false
+        },
+        {
+          "id": "10.4",
+          "title": "10.4 Self-Assessment Surveys",
+          "file": "Podcast_Unit_10/04_Subunit_10.4_Self_Assessment_Surveys.mp3",
+          "ready": false
+        },
+        {
+          "id": "10.5",
+          "title": "10.5 Interviewing",
+          "file": "Podcast_Unit_10/05_Subunit_10.5_Interviewing.mp3",
+          "ready": false
+        },
+        {
+          "id": "10.6",
+          "title": "10.6 Other Information Gathering Methods",
+          "file": "Podcast_Unit_10/06_Subunit_10.6_Other_Information_Gathering_Methods.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 11,
+      "title": "Analyzing Information",
+      "tracks": [
+        {
+          "id": "11.0",
+          "title": "11.0 Introduction",
+          "file": "Podcast_Unit_11/00_Subunit_11.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "11.1",
+          "title": "11.1 Flowcharts and Process Mapping",
+          "file": "Podcast_Unit_11/01_Subunit_11.1_Flowcharts_and_Process_Mapping.mp3",
+          "ready": false
+        },
+        {
+          "id": "11.2",
+          "title": "11.2 Analytical Review Methods",
+          "file": "Podcast_Unit_11/02_Subunit_11.2_Analytical_Review_Methods.mp3",
+          "ready": false
+        },
+        {
+          "id": "11.3",
+          "title": "11.3 Technological Options",
+          "file": "Podcast_Unit_11/03_Subunit_11.3_Technological_Options.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 12,
+      "title": "Documentation, Evaluation, and Conclusions",
+      "tracks": [
+        {
+          "id": "12.0",
+          "title": "12.0 Introduction",
+          "file": "Podcast_Unit_12/00_Subunit_12.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "12.1",
+          "title": "12.1 Workpapers -- Purpose and Characteristics",
+          "file": "Podcast_Unit_12/01_Subunit_12.1_Workpapers_Purpose_and_Characteristics.mp3",
+          "ready": false
+        },
+        {
+          "id": "12.2",
+          "title": "12.2 Workpapers -- Review, Control, and Retention",
+          "file": "Podcast_Unit_12/02_Subunit_12.2_Workpapers_Review_Control_and_Retention.mp3",
+          "ready": false
+        },
+        {
+          "id": "12.3",
+          "title": "12.3 Drawing Conclusions",
+          "file": "Podcast_Unit_12/03_Subunit_12.3_Drawing_Conclusions.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 13,
+      "title": "Engagement Supervision",
+      "tracks": [
+        {
+          "id": "13.0",
+          "title": "13.0 Introduction",
+          "file": "Podcast_Unit_13/00_Subunit_13.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "13.1",
+          "title": "13.1 Supervision and Coordinating Work Assignments",
+          "file": "Podcast_Unit_13/01_Subunit_13.1_Supervision_and_Coordinating_Work_Assignments.mp3",
+          "ready": false
+        },
+        {
+          "id": "13.2",
+          "title": "13.2 Supervisor Responsibility for Reviewing Workpapers and Engagement Conclusions",
+          "file": "Podcast_Unit_13/02_Subunit_13.2_Supervisor_Responsibility_for_Reviewing_Workpapers_and_Engagement_Conclusions.mp3",
+          "ready": false
+        },
+        {
+          "id": "13.3",
+          "title": "13.3 Supervisor Responsibility for Evaluating Auditors’ Performance",
+          "file": "Podcast_Unit_13/03_Subunit_13.3_Supervisor_Responsibility_for_Evaluating_Auditors_Performance.mp3",
+          "ready": false
+        }
+      ]
+    },
+    {
+      "unit": 14,
+      "title": "Engagement Communications",
+      "tracks": [
+        {
+          "id": "14.0",
+          "title": "14.0 Introduction",
+          "file": "Podcast_Unit_14/00_Subunit_14.0_Introduction.mp3",
+          "ready": false
+        },
+        {
+          "id": "14.1",
+          "title": "14.1 Communication Methods",
+          "file": "Podcast_Unit_14/01_Subunit_14.1_Communication_Methods.mp3",
+          "ready": false
+        },
+        {
+          "id": "14.2",
+          "title": "14.2 Situations Requiring Escalation to Senior Management",
+          "file": "Podcast_Unit_14/02_Subunit_14.2_Situations_Requiring_Escalation_to_Senior_Management.mp3",
+          "ready": false
+        },
+        {
+          "id": "14.3",
+          "title": "14.3 Communication with Stakeholders",
+          "file": "Podcast_Unit_14/03_Subunit_14.3_Communication_with_Stakeholders.mp3",
+          "ready": false
+        }
+      ]
+    }
+  ]
+}
