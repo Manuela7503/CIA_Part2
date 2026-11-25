@@ -6,7 +6,10 @@ A static study app for Internal Audit Engagement. It runs from any static web ho
 
 1. Open the hosted app and tap **Bank**.
 2. Choose your Part 2 study ZIP. It contains the question JSON at its root and diagrams in `images/`. You can instead select the individual JSON and image files.
-3. Open **Study** for practice, a 125-question simulation, or a review of missed questions.
+3. Open **Study** and enter the number of questions you want. For the full exam simulation, enter 125. For a larger practice session, enter any number up to the available question count.
+4. After a session, view the full questions, exhibits, and four answer choices. Use **Redo wrong questions** to retry only the questions you got wrong in that session. **Review last session** reopens the review.
+
+Use **Bank → Add or replace images** to import individual images or an images ZIP without reimporting the question bank. Use the original image filenames.
 
 The question bank is stored using IndexedDB on the device. Progress, saved sessions, and podcast position are saved in the same browser. Your quiz timer uses elapsed wall-clock time, including when the app is in the background or a session is saved and exited. Progress is a study metric. It does not calculate the official CIA scaled exam score.
 
@@ -14,7 +17,9 @@ The full simulation uses 63 Engagement Planning, 50 Information Gathering, Analy
 
 ## Adding podcasts
 
-`podcasts.json` lists an introduction and a recording slot for every unit and subunit. Add MP3s at the listed paths and change each track's `ready` value to `true` when its recording is available. Keep paths relative to this repository so they also work beneath the GitHub Pages project path. Users can play an episode or queue all available episodes in a unit.
+To add a personal recording, open **Podcasts → Add a podcast** and choose an audio file. Enter an optional title and select any combination of whole units and individual subunits. The app saves the audio once on your device, and the recording appears under each selected unit with the selected subunits listed. Audio added this way stays in your current browser.
+
+For audio you want to host with the app, `podcasts.json` lists an introduction and a recording slot for every unit and subunit. Add MP3s at the listed paths and change each track's `ready` value to `true` when its recording is available. Keep paths relative to this repository so they also work beneath the GitHub Pages project path.
 
 ## Local use
 

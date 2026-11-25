@@ -47,10 +47,11 @@ export function parseQuestions(content) {
 }
 
 const imageType = name => ({png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp'})[name.split('.').at(-1).toLowerCase()];
-export async function readImport(files) {
+export async function readImport(files, imagesOnly = false) {
   const entries = new Map();
   const take = (name, bytes) => {
     if (name.toLowerCase().endsWith('.json')) {
+      if (imagesOnly) return;
       const questions = parseQuestions(new TextDecoder().decode(bytes));
       if (entries.has('questions')) throw new Error('Import one question bank at a time.');
       entries.set('questions', questions);
@@ -59,7 +60,7 @@ export async function readImport(files) {
   for (const file of files) {
     if (file.size > 30 * 1024 * 1024) throw new Error('Each import file must be under 30 MB.');
     if (/\.zip$/i.test(file.name)) {
-      for (const [name, bytes] of await unpackZip(await file.arrayBuffer())) take(name, bytes);
+      for (const [name, bytes] of await unpackZip(await file.arrayBuffer(), imagesOnly)) take(name, bytes);
     } else {
       const name = /\.json$/i.test(file.name) ? file.name : 'images/' + file.name;
       take(name, await file.arrayBuffer());
@@ -69,7 +70,7 @@ export async function readImport(files) {
   return entries;
 }
 
-async function unpackZip(buffer) {
+async function unpackZip(buffer, imagesOnly) {
   const zip = new DataView(buffer);
   const u16 = n => zip.getUint16(n, true);
   const u32 = n => zip.getUint32(n, true);
@@ -88,8 +89,9 @@ async function unpackZip(buffer) {
     const length = u16(entry + 28), offset = u32(entry + 42);
     const next = entry + 46 + length + u16(entry + 30) + u16(entry + 32);
     if (next > end) throw new Error('The ZIP directory is incomplete.');
-    const name = new TextDecoder().decode(new Uint8Array(buffer, entry + 46, length));
+    let name = new TextDecoder().decode(new Uint8Array(buffer, entry + 46, length));
     entry = next;
+    if (imagesOnly && !name.endsWith('/')) name = 'images/' + name.split('/').at(-1);
     if (!/^[\w .()-]+\.json$/i.test(name) && !isImage(name)) continue;
     if ((flags & 1) || ![0,8].includes(method) || offset + 30 >= end || u32(offset) !== 0x04034b50) throw new Error('The ZIP uses unsupported compression or encryption.');
     const start = offset + 30 + u16(offset + 26) + u16(offset + 28);

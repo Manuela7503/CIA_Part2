@@ -21,11 +21,11 @@ const domains = [
   [40, 'Information Gathering, Analysis, and Evaluation', 'information_gathering_analysis_and_evaluation'],
   [10, 'Engagement Supervision and Communication', 'engagement_supervision_and_communication'],
 ];
-const allocations = [63, 50, 12];
 const metricNames = ['Questions in bank', 'Questions seen', 'Accuracy'];
 const stateKey = 'cia2-desk-progress-v1';
 let history = {};
 let session = null;
+let lastReview = null;
 let bank = [];
 let questionsById = new Map();
 let groups = new Map();
@@ -34,6 +34,9 @@ const imageURLs = new Map();
 let menu = {units:[]};
 let playlist = [];
 let episodeIndex = 0;
+let audioURL;
+let playbackRequest = 0;
+let localTracks = [];
 const audio = dom('audio');
 let timer;
 
@@ -44,10 +47,11 @@ function localRead(key, fallback) {
 function localWrite(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 }
-function save() { localWrite(stateKey, {history, session}); }
+function save() { localWrite(stateKey, {history, session, lastReview}); }
 const stored = localRead(stateKey, {});
 history = stored.history ?? {};
 session = stored.session ?? null;
+lastReview = stored.lastReview ?? null;
 const topic = q => q.unit_number + '.' + q.subunit_number;
 
 function setBank(rows) {
@@ -102,6 +106,23 @@ function renderTopics() {
 const mode = () => dom('session-form').elements.mode.value;
 const missed = () => bank.filter(q => Object.hasOwn(history, q.id) && history[q.id].last === false);
 const practicePool = () => bank.filter(q => picked.has(topic(q)));
+const examPools = () => domains.map(([, , key]) => bank.filter(q => q.exam_domain_key === key));
+function examAllocation(size, pools) {
+  const quotas = domains.map(([weight]) => size * weight / 100);
+  const counts = quotas.map(Math.floor);
+  const order = quotas.map((value, i) => [i, value - counts[i]]).sort((a,b) => b[1] - a[1]);
+  for (let left = size - counts.reduce((a,b) => a+b,0), i = 0; i < left; i++) counts[order[i][0]]++;
+  return counts.every((n, i) => n <= pools[i].length) ? counts : null;
+}
+function sessionLimit(type) {
+  if (type === 'missed') return missed().length;
+  if (type === 'practice') return practicePool().length;
+  const pools = examPools();
+  for (let n = pools.reduce((sum, pool) => sum + pool.length, 0); n > 0; n--) {
+    if (examAllocation(n, pools)) return n;
+  }
+  return 0;
+}
 function recorded() { return bank.flatMap(q => Object.hasOwn(history, q.id) ? [history[q.id]] : []); }
 function analytics(rows) { return rows.reduce((a, row) => [a[0] + row.right, a[1] + row.tries], [0,0]); }
 function refresh() {
@@ -114,21 +135,27 @@ function refresh() {
   }));
   const current = mode();
   const practice = practicePool();
-  const count = current === 'missed' ? missed().length : practice.length;
+  const count = sessionLimit(current);
   dom('topic-count').textContent = '· ' + number(practice.length);
   dom('topic-picker').hidden = current !== 'practice' || !bank.length;
-  dom('session-settings').hidden = current === 'exam';
+  dom('session-settings').hidden = !bank.length;
+  dom('timer-setting').hidden = current === 'exam';
   dom('exam-note').hidden = current !== 'exam';
-  const examReady = domains.every(([, , key], i) => bank.filter(q => q.exam_domain_key === key).length >= allocations[i]);
+  const amount = dom('amount');
+  amount.max = Math.max(1, count);
+  if (amount.valueAsNumber > count && count) amount.value = count;
+  dom('all-questions').textContent = current === 'exam' ? 'Use maximum' : 'Use all available';
+  dom('all-questions').disabled = !count;
+  dom('exam-note').textContent = '50 / 40 / 10 blueprint · 1.2 minutes per question. Full exam format: 125 questions in 150 minutes.';
   dom('setup-note').textContent = !bank.length ? 'Import the question bank to start studying.' :
-    current === 'exam' ? (examReady ? '' : 'The bank needs enough questions in all three exam domains.') :
-    count ? number(count) + ' questions available' : 'No questions available for this session.';
+    count ? (current === 'exam' ? 'Maximum with the exam blueprint: ' : 'Questions available: ') + number(count) : 'No questions available for this session.';
   const start = dom('start');
   start.textContent = !bank.length ? 'Import question bank' : ({practice:'Start practice', exam:'Start exam simulation', missed:'Review missed questions'})[current];
-  start.disabled = Boolean(bank.length && (current === 'exam' ? !examReady : !count));
+  start.disabled = Boolean(bank.length && !count);
   const resume = dom('resume-session');
   resume.replaceChildren();
   if (session && bank.length) resume.append(button('Resume saved session', resumeQuiz, 'primary'));
+  if (lastReview?.ids.some(id => questionsById.has(id))) resume.append(button('Review last session', renderResults));
 }
 function shuffled(items) {
   const list = [...items];
@@ -143,11 +170,21 @@ function start(e) {
   if (!bank.length) return show('data');
   if (session && !window.confirm('Replace your saved session with a new one?')) return;
   const type = mode();
-  const size = Number(dom('amount').value);
-  const items = type === 'exam' ? shuffled(domains.flatMap(([, ,key], i) => shuffled(bank.filter(q => q.exam_domain_key === key)).slice(0, allocations[i]))) :
+  const size = dom('amount').valueAsNumber;
+  if (!Number.isInteger(size) || size < 1 || size > sessionLimit(type)) return;
+  const pools = type === 'exam' ? examPools() : [];
+  const allocation = type === 'exam' ? examAllocation(size, pools) : null;
+  if (type === 'exam' && !allocation) {
+    dom('setup-note').textContent = 'That count cannot match the blueprint with the available questions. Try a smaller count.';
+    return;
+  }
+  const items = allocation ? shuffled(pools.flatMap((pool, i) => shuffled(pool).slice(0, allocation[i]))) :
     shuffled(type === 'practice' ? practicePool() : missed()).slice(0, size);
+  begin(items, type, type === 'exam' || dom('timing').value === '1');
+}
+function begin(items, type, timed = false) {
   if (!items.length) return;
-  const minutes = type === 'exam' ? 150 : dom('timing').value === '1' ? items.length * 1.2 : 0;
+  const minutes = timed ? items.length * 1.2 : 0;
   session = {type, ids:items.map(q => q.id), index:0, answers:Array(items.length).fill(null), ends:minutes ? Date.now() + minutes * 60000 : 0};
   save();
   resumeQuiz();
@@ -301,28 +338,71 @@ function finish(note = '') {
   session = null;
   const evaluated = completed.ids.map((id, i) => [questionsById.get(id), completed.answers[i]]);
   if (completed.type === 'exam') for (const [q, a] of evaluated) record(q, a);
+  lastReview = {...completed, note};
   save();
+  renderResults();
+}
+function renderResults() {
+  if (!lastReview) return;
+  clearInterval(timer);
+  const completed = lastReview;
+  const evaluated = completed.ids.map((id, i) => [questionsById.get(id), completed.answers[i]]).filter(([q]) => q);
   const right = evaluated.filter(([q,a]) => q.correct_answer === a).length;
   const total = completed.type === 'exam' ? evaluated.length : evaluated.filter(([,a]) => a).length;
   const card = element('div', null, 'card');
   card.append(element('h2', 'Session results'), element('p', right + ' / ' + total + ' correct', 'score'));
-  if (note) card.append(element('p', note, 'muted'));
+  if (completed.note) card.append(element('p', completed.note, 'muted'));
   if (completed.type === 'exam') card.append(element('p', 'Practice score · ' + pct(right,total), 'muted'));
-  const review = element('details');
-  review.append(element('summary','Review incorrect and unanswered'));
-  for (const [q, a] of evaluated.filter(([q,a]) => q.correct_answer !== a)) {
-    const item = element('div');
-    item.append(element('p',q.question),element('p','Your answer: ' + (a ?? 'Unanswered') + ' · Correct: ' + q.correct_answer,'muted'));
-    const value = q.options[q.correct_answer];
-    if (isImage(value)) queueMicrotask(() => { void attachImage(item, value, 'Correct image answer', true); });
-    else item.append(element('p',value));
-    review.append(item, element('hr'));
-  }
-  if (review.childElementCount === 1) review.append(element('p','No items to review.'));
-  card.append(review, button('New session', () => {
+  const incorrect = evaluated.filter(([q,a]) => a && q.correct_answer !== a);
+  const actions = element('div', null, 'actions');
+  if (incorrect.length) actions.append(button('Redo wrong questions (' + incorrect.length + ')', () => {
+    if (session && !window.confirm('Replace your saved session with this retry?')) return;
+    begin(shuffled(incorrect.map(([q]) => q)), 'missed');
+  }, 'primary'));
+  actions.append(button('New session', () => {
     dom('results').hidden = true; dom('setup').hidden = false; refresh();
-  },'primary'));
+  }));
+  const filter = element('label', 'Show questions');
+  const select = element('select');
+  for (const [value, title] of [['all','All questions'],['missed','Incorrect and unanswered']]) {
+    const option = element('option', title);
+    option.value = value;
+    select.append(option);
+  }
+  filter.append(select);
+  const review = element('div');
+  function drawReview() {
+    const items = select.value === 'all' ? evaluated : evaluated.filter(([q,a]) => q.correct_answer !== a);
+    review.replaceChildren();
+    for (const [q, a] of items) {
+      const item = element('article', null, 'review-item');
+      item.append(element('p','Unit ' + q.unit_number + ' · ' + q.subunit_title,'muted'));
+      if (q.context) item.append(element('div', q.context, 'context'));
+      item.append(element('h3', q.question), element('p','Your answer: ' + (a ?? 'Unanswered') + ' · Correct answer: ' + q.correct_answer,'muted'));
+      const choices = new Set(Object.values(q.options).filter(isImage));
+      for (const name of new Set([...(q.images ?? []), q.image].filter(isImage))) {
+        if (!choices.has(name)) queueMicrotask(() => { void attachImage(item, name, 'Question exhibit', true); });
+      }
+      const list = element('div', null, 'choices');
+      for (const letter of keys) {
+        const value = q.options[letter];
+        const status = (letter === q.correct_answer ? ' · Correct' : '') + (letter === a ? ' · Your answer' : '');
+        const row = element('div',null,'review-choice' + (letter === q.correct_answer ? ' correct' : letter === a ? ' wrong' : ''));
+        row.append(element('strong',letter + status), element('br'));
+        if (isImage(value)) queueMicrotask(() => { void attachImage(row, value, 'Image choice ' + letter, true); });
+        else row.append(document.createTextNode(value));
+        list.append(row);
+      }
+      item.append(list);
+      review.append(item);
+    }
+    if (!items.length) review.append(element('p','No items to review.','muted'));
+  }
+  select.addEventListener('change', drawReview);
+  drawReview();
+  card.append(actions, filter, review);
   dom('quiz').hidden = true;
+  dom('setup').hidden = true;
   dom('results').replaceChildren(card);
   dom('results').hidden = false;
   refresh();
@@ -341,32 +421,129 @@ function renderProgress() {
   }
 }
 
+function selectedPodcastTopics() {
+  return [...dom('podcast-topics').querySelectorAll('input:checked')].map(input => input.value);
+}
+function renderPodcastTopics() {
+  const target = dom('podcast-topics');
+  target.replaceChildren();
+  for (const unit of menu.units) {
+    const group = element('details');
+    const summary = element('summary', unit.unit + '. ' + unit.title);
+    group.append(summary);
+    const add = (id, title, className = '') => {
+      const label = element('label', null, 'topic-row ' + className);
+      const input = element('input');
+      input.type = 'checkbox';
+      input.value = id;
+      label.append(input, element('span', title));
+      group.append(label);
+    };
+    add(String(unit.unit), 'Whole Unit ' + unit.unit);
+    for (const track of unit.tracks) add(track.id, track.title, 'subtopic');
+    group.addEventListener('change', e => {
+      const boxes = [...group.querySelectorAll('input')];
+      const [whole, ...subunits] = boxes;
+      if (e.target === whole && whole.checked) subunits.forEach(box => { box.checked = false; });
+      else if (e.target.checked) whole.checked = false;
+      dom('save-podcast').disabled = selectedPodcastTopics().length === 0;
+      const count = boxes.filter(box => box.checked).length;
+      summary.textContent = unit.unit + '. ' + unit.title + (count ? ' · ' + count + ' selected' : '');
+    });
+    target.append(group);
+  }
+  if (target.firstElementChild) target.firstElementChild.open = true;
+}
+dom('podcast-file').addEventListener('change', () => {
+  const file = dom('podcast-file').files[0];
+  dom('podcast-details').hidden = !file;
+  dom('podcast-status').textContent = menu.units.length ? '' : 'The topic list is unavailable. Reload to try again.';
+  dom('save-podcast').disabled = true;
+  if (!file) return;
+  dom('podcast-title').value = file.name.replace(/\.[^.]+$/, '').slice(0,100);
+  renderPodcastTopics();
+});
+dom('podcast-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const select = dom('podcast-file');
+  const status = dom('podcast-status');
+  const file = select.files[0];
+  const topics = selectedPodcastTopics();
+  if (!file || !topics.length) return;
+  if (!file.size || !(/\.(mp3|m4a|aac|mp4|wav|ogg|opus|webm|flac)$/i.test(file.name) || file.type.startsWith('audio/'))) {
+    status.textContent = 'Choose a supported audio file, such as MP3 or M4A.';
+    return;
+  }
+  const track = {
+    title: dom('podcast-title').value.trim() || file.name,
+    file: 'podcast:' + crypto.randomUUID(),
+    topics,
+    local:true,
+    ready:true,
+  };
+  select.disabled = true;
+  dom('save-podcast').disabled = true;
+  status.textContent = 'Saving audio on this device…';
+  try {
+    const recordings = [...localTracks, track];
+    await storedPut([[track.file, file], ['podcast-recordings', recordings]]);
+    localTracks = recordings;
+    dom('podcast-unit').value = topics[0].split('.')[0];
+    renderEpisodes();
+    select.value = '';
+    dom('podcast-details').hidden = true;
+    status.textContent = 'Podcast saved. It appears in every selected unit.';
+  } catch {
+    status.textContent = 'Could not save the audio. Check available space on this device and try again.';
+    dom('save-podcast').disabled = false;
+  } finally { select.disabled = false; }
+});
 function renderEpisodes() {
   const selected = menu.units.find(u => String(u.unit) === dom('podcast-unit').value);
   const container = dom('episodes');
   container.replaceChildren();
   if (!selected) { container.append(element('p','Podcast list unavailable. Reload to try again.','muted')); return; }
-  if (selected.tracks.some(t => t.ready)) container.append(button('Play available episodes', () => loadTrack(selected.tracks.filter(t=>t.ready),0)));
-  for (const track of selected.tracks) {
+  const uploads = localTracks.filter(track => track.topics.some(id => id.split('.')[0] === String(selected.unit)));
+  const tracks = [...uploads, ...selected.tracks];
+  const available = tracks.filter(t => t.ready);
+  if (available.length) container.append(button('Play available episodes', () => loadTrack(available,0)));
+  for (const track of tracks) {
     const row = element('div',null,'episode');
     const title = element('span');
-    title.append(element('strong',track.title),element('small',track.ready ? 'Available' : 'Coming soon'));
+    const links = track.local ? track.topics.filter(id => id.split('.')[0] === String(selected.unit)).map(id =>
+      id.includes('.') ? selected.tracks.find(t => t.id === id)?.title ?? id : 'Whole Unit ' + id) : [];
+    title.append(element('strong',track.title),element('small',track.local ? links.join(' · ') : track.ready ? 'Available' : 'Coming soon'));
     row.append(title);
-    if (track.ready) row.append(button('Play',()=>loadTrack(selected.tracks.filter(t=>t.ready),selected.tracks.filter(t=>t.ready).indexOf(track))));
+    if (track.ready) row.append(button('Play',()=>loadTrack(available,available.indexOf(track))));
     container.append(row);
   }
 }
-function loadTrack(tracks, index) {
+async function loadTrack(tracks, index) {
   if (!tracks[index]) return;
+  const request = ++playbackRequest;
+  const item = tracks[index];
+  let currentSource;
+  if (item.local) {
+    const blob = await storedGet(item.file).catch(() => null);
+    if (request !== playbackRequest) return;
+    if (!(blob instanceof Blob)) {
+      dom('podcast-status').textContent = 'This recording is missing. Upload the audio file again.';
+      return;
+    }
+    currentSource = URL.createObjectURL(blob);
+  } else {
+    currentSource = new URL(item.file, location.href).href;
+  }
+  audio.pause();
   playlist = tracks;
   episodeIndex = index;
-  const item = tracks[index];
   dom('now-playing').hidden = false;
   dom('track-title').textContent = item.title;
   dom('audio-status').textContent = '';
   dom('next-track').disabled = index + 1 >= tracks.length;
-  const currentSource = new URL(item.file, location.href).href;
   audio.src = currentSource;
+  if (audioURL) URL.revokeObjectURL(audioURL);
+  audioURL = item.local ? currentSource : undefined;
   audio.playbackRate = Number(dom('speed').value);
   audio.play().catch(() => { dom('audio-status').textContent = 'Tap play to start audio.'; });
 }
@@ -391,6 +568,7 @@ dom('speed').addEventListener('change', e => { audio.playbackRate = Number(e.tar
 dom('podcast-unit').addEventListener('change',renderEpisodes);
 dom('session-form').addEventListener('submit',start);
 dom('session-form').addEventListener('change',refresh);
+dom('all-questions').addEventListener('click', () => { dom('amount').value = sessionLimit(mode()); });
 for (const nav of document.querySelectorAll('[data-page]')) nav.addEventListener('click',()=>show(nav.dataset.page));
 for (const control of document.querySelectorAll('[data-topics]')) control.addEventListener('click', () => {
   const all = control.dataset.topics === 'all';
@@ -409,6 +587,7 @@ dom('bank-file').addEventListener('change', async e => {
   dom('import-status').textContent = 'Importing…';
   try {
     const imported = await readImport(input.files);
+    if (!imported.has('questions')) throw new Error('Choose a ZIP or JSON containing the question bank.');
     await storedPut(imported);
     session = null;
     clearInterval(timer);
@@ -427,12 +606,37 @@ dom('bank-file').addEventListener('change', async e => {
   } catch (error) { dom('import-status').textContent = error.message || 'Could not save the question bank.'; }
   finally { input.disabled = false; input.value = ''; }
 });
+dom('image-file').addEventListener('change', async event => {
+  const input = event.target;
+  if (!input.files.length) return;
+  const status = dom('image-status');
+  input.disabled = true;
+  status.textContent = 'Importing images…';
+  try {
+    const images = await readImport(input.files, true);
+    const refs = new Set(bank.flatMap(q => [...(q.images ?? []), q.image, ...Object.values(q.options)].filter(isImage)));
+    const matched = [...images.keys()].filter(name => refs.has(name)).length;
+    await storedPut(images);
+    for (const name of images.keys()) {
+      if (imageURLs.has(name)) URL.revokeObjectURL(imageURLs.get(name));
+      imageURLs.delete(name);
+    }
+    if (session && !dom('quiz').hidden) renderQuestion();
+    if (lastReview && !dom('results').hidden) renderResults();
+    status.textContent = images.size + ' images saved.' + (bank.length ? ' ' + matched + ' match filenames in this bank.' : ' Import the question bank when ready.');
+  } catch (error) { status.textContent = error.message || 'Could not save images.'; }
+  finally { input.disabled = false; input.value = ''; }
+});
 
 refresh();
 try {
   const file = await storedGet('questions');
   if (file) setBank(parseQuestions(JSON.stringify(file)));
 } catch { dom('import-status').textContent = 'This browser could not read saved study files. You can try importing again.'; }
+try {
+  const recordings = await storedGet('podcast-recordings');
+  if (Array.isArray(recordings)) localTracks = recordings;
+} catch {}
 try {
   const res = await fetch('./podcasts.json');
   if (!res.ok) throw new Error('Podcast list unavailable');
