@@ -69,12 +69,11 @@ function setBank(rows) {
   refresh();
 }
 function show(page) {
-  for (const name of ['study','listen','progress']) dom(name).hidden = name !== page;
+  for (const name of ['study','listen']) dom(name).hidden = name !== page;
   for (const item of document.querySelectorAll('[data-page]')) {
     if (item.dataset.page === page) item.setAttribute('aria-current', 'page');
     else item.removeAttribute('aria-current');
   }
-  if (page === 'progress') renderProgress();
   window.scrollTo(0, 0);
   dom('main').focus({preventScroll:true});
 }
@@ -92,7 +91,6 @@ function renderTopics() {
       input.dataset.topic = id;
       input.addEventListener('change', () => {
         if (input.checked) picked.add(id); else picked.delete(id);
-        refresh();
       });
       row.append(input, element('span', id + ' ' + item.title + ' · ' + item.count));
       section.append(row);
@@ -111,15 +109,6 @@ function examAllocation(size, pools) {
   for (let left = size - counts.reduce((a,b) => a+b,0), i = 0; i < left; i++) counts[order[i][0]]++;
   return counts.every((n, i) => n <= pools[i].length) ? counts : null;
 }
-function sessionLimit(type) {
-  if (type === 'missed') return missed().length;
-  if (type === 'practice') return practicePool().length;
-  const pools = examPools();
-  for (let n = pools.reduce((sum, pool) => sum + pool.length, 0); n > 0; n--) {
-    if (examAllocation(n, pools)) return n;
-  }
-  return 0;
-}
 function recorded() { return bank.flatMap(q => Object.hasOwn(history, q.id) ? [history[q.id]] : []); }
 function analytics(rows) { return rows.reduce((a, row) => [a[0] + row.right, a[1] + row.tries], [0,0]); }
 function refresh() {
@@ -131,24 +120,24 @@ function refresh() {
     return metric;
   }));
   const current = mode();
-  const practice = practicePool();
-  const count = sessionLimit(current);
-  dom('topic-count').textContent = '· ' + number(practice.length);
+  const isExam = current === 'exam';
+  const count = isExam ? Number(dom('amount').value) :
+    (current === 'practice' ? practicePool() : missed()).length;
+  const available = isExam ? Boolean(examAllocation(count, examPools())) : count > 0;
+  dom('topic-count').textContent = '· ' + number(count) + ' questions';
   dom('topic-picker').hidden = current !== 'practice' || !bank.length;
   dom('session-settings').hidden = !bank.length;
-  dom('timer-setting').hidden = current === 'exam';
-  dom('exam-note').hidden = current !== 'exam';
-  const amount = dom('amount');
-  amount.max = Math.max(1, count);
-  if (amount.valueAsNumber > count && count) amount.value = count;
-  dom('all-questions').textContent = current === 'exam' ? 'Use maximum' : 'Use all available';
-  dom('all-questions').disabled = !count;
-  dom('exam-note').textContent = '50 / 40 / 10 blueprint · 1.2 minutes per question. Full exam format: 125 questions in 150 minutes.';
+  dom('exam-length').hidden = !isExam;
+  dom('timer-setting').hidden = isExam;
+  dom('exam-note').hidden = !isExam;
+  if (isExam) dom('exam-note').textContent = number(count) + ' questions · ' +
+    number(count * 1.2) + ' minutes · 50 / 40 / 10 exam blueprint';
   dom('setup-note').textContent = !bank.length ? bankStatus :
-    count ? (current === 'exam' ? 'Maximum with the exam blueprint: ' : 'Questions available: ') + number(count) : 'No questions available for this session.';
+    !available ? (isExam ? 'The bank cannot support this exam length. Choose a shorter exam.' : 'No questions available for this session.') :
+    isExam ? '' : number(count) + (count === 1 ? ' question' : ' questions') + ' in this session.';
   const start = dom('start');
   start.textContent = ({practice:'Start practice', exam:'Start exam simulation', missed:'Review missed questions'})[current];
-  start.disabled = !count;
+  start.disabled = !available;
   const resume = dom('resume-session');
   resume.replaceChildren();
   if (session && bank.length) resume.append(button('Resume saved session', resumeQuiz, 'primary'));
@@ -167,8 +156,7 @@ function start(e) {
   if (!bank.length) return;
   if (session && !window.confirm('Replace your saved session with a new one?')) return;
   const type = mode();
-  const size = dom('amount').valueAsNumber;
-  if (!Number.isInteger(size) || size < 1 || size > sessionLimit(type)) return;
+  const size = Number(dom('amount').value);
   const pools = type === 'exam' ? examPools() : [];
   const allocation = type === 'exam' ? examAllocation(size, pools) : null;
   if (type === 'exam' && !allocation) {
@@ -176,7 +164,7 @@ function start(e) {
     return;
   }
   const items = allocation ? shuffled(pools.flatMap((pool, i) => shuffled(pool).slice(0, allocation[i]))) :
-    shuffled(type === 'practice' ? practicePool() : missed()).slice(0, size);
+    shuffled(type === 'practice' ? practicePool() : missed());
   begin(items, type, type === 'exam' || dom('timing').value === '1');
 }
 function begin(items, type, timed = false) {
@@ -397,18 +385,6 @@ function renderResults() {
   refresh();
   window.scrollTo(0, 0);
 }
-function renderProgress() {
-  const root = dom('progress-content');
-  root.replaceChildren(element('h2','Coverage by unit'));
-  if (!bank.length) root.append(element('p', bankStatus, 'muted'));
-  for (const [unit, group] of groups) {
-    const viewed = bank.filter(q => q.unit_number === unit && Object.hasOwn(history,q.id));
-    const [hits, attempts] = analytics(viewed.map(q => history[q.id]));
-    const row = element('div',null,'ledger-row');
-    row.append(element('span',unit + '. ' + group.title), element('span',viewed.length + '/' + group.count + ' · ' + pct(hits,attempts)));
-    root.append(row);
-  }
-}
 
 function renderEpisodes() {
   const selected = menu.units.find(u => String(u.unit) === dom('podcast-unit').value);
@@ -417,7 +393,11 @@ function renderEpisodes() {
   if (!selected) { container.append(element('p','Podcast list unavailable. Reload to try again.','muted')); return; }
   const uploads = (menu.recordings ?? []).filter(track =>
     track.ready && track.topics.some(id => id.split('.')[0] === String(selected.unit)));
-  const tracks = [...new Map([...uploads, ...selected.tracks].map(track => [track.file, track])).values()];
+  const uploadedFiles = new Set(uploads.map(track => track.file));
+  const tracks = [...new Map(
+    [...uploads, ...selected.tracks.filter(track => !uploadedFiles.has(track.file))]
+      .map(track => [track.file, track])
+  ).values()];
   const available = tracks.filter(t => t.ready);
   if (available.length) container.append(button('Play available episodes', () => loadTrack(available,0)));
   for (const track of tracks) {
@@ -466,7 +446,6 @@ dom('speed').addEventListener('change', e => { audio.playbackRate = Number(e.tar
 dom('podcast-unit').addEventListener('change',renderEpisodes);
 dom('session-form').addEventListener('submit',start);
 dom('session-form').addEventListener('change',refresh);
-dom('all-questions').addEventListener('click', () => { dom('amount').value = sessionLimit(mode()); });
 for (const nav of document.querySelectorAll('[data-page]')) nav.addEventListener('click',()=>show(nav.dataset.page));
 for (const control of document.querySelectorAll('[data-topics]')) control.addEventListener('click', () => {
   const all = control.dataset.topics === 'all';
@@ -482,11 +461,9 @@ try {
   const response = await fetch('./questions_part2.json');
   if (!response.ok) throw new Error('Question bank unavailable');
   setBank(parseQuestions(await response.text()));
-  if (!dom('progress').hidden) renderProgress();
 } catch {
   bankStatus = 'Could not load questions. Check your connection and reload.';
   refresh();
-  if (!dom('progress').hidden) renderProgress();
 }
 try {
   const res = await fetch('./podcasts.json');

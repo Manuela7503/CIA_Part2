@@ -26,7 +26,7 @@
             <label class="mode"><input type="radio" name="mode" value="exam"><span><strong>Exam simulation</strong><small>Timed, weighted questions</small></span></label>
             <label class="mode"><input type="radio" name="mode" value="missed"><span><strong>Review missed</strong><small>Revisit answers to improve</small></span></label>
           </div></fieldset>
-          <div id="session-settings" class="controls"><label>Questions<input id="amount" type="number" inputmode="numeric" min="1" step="1" value="20" required></label><button type="button" id="all-questions" class="quiet">Use all available</button><label id="timer-setting">Timer<select id="timing"><option value="0">Off</option><option value="1">Exam pace</option></select></label></div>
+          <div id="session-settings" class="controls"><label id="exam-length" hidden>Exam questions<select id="amount"><option>20</option><option>50</option><option>70</option><option>100</option><option selected>125</option></select></label><label id="timer-setting">Timer<select id="timing"><option value="0">Off</option><option value="1">Exam pace</option></select></label></div>
           <p id="exam-note" class="muted" hidden></p>
           <details id="topic-picker"><summary>Choose units and subunits <span id="topic-count"></span></summary><div class="actions"><button type="button" data-topics="all" class="quiet">Select all</button><button type="button" data-topics="none" class="quiet">Clear</button></div><div id="topics"></div></details>
           <p id="setup-note" class="status" aria-live="polite"></p>
@@ -41,12 +41,10 @@
       <div id="now-playing" class="card" hidden><h2 id="track-title">Now playing</h2><audio id="audio" controls preload="metadata"></audio><div class="actions"><button id="next-track" class="quiet">Next episode</button><label class="inline"><input id="autoplay" type="checkbox" checked>Autoplay</label><label class="inline">Speed <select id="speed" aria-label="Playback speed"><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>2</option></select></label></div><p id="audio-status" role="status"></p></div>
       <div class="card"><label>Study unit<select id="podcast-unit"></select></label><div id="episodes" class="episodes"></div></div>
     </section>
-    <section id="progress" hidden aria-labelledby="progress-title"><div class="page-head"><p class="eyebrow">YOUR RESULTS</p><h1 id="progress-title">Progress</h1><p>See what you’ve covered and where to practise next.</p></div><div class="card" id="progress-content"></div></section>
   </main>
   <nav class="dock" aria-label="Main navigation"><div class="wrap nav-inner">
     <button data-page="study" aria-current="page"><span aria-hidden="true">▤</span>Study</button>
     <button data-page="listen"><span aria-hidden="true">♫</span>Podcasts</button>
-    <button data-page="progress"><span aria-hidden="true">◴</span>Progress</button>
   </div></nav>
 </body>
 </html>

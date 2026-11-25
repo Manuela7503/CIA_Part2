@@ -6,7 +6,7 @@ A static study app for Internal Audit Engagement. It runs from any static web ho
 
 1. Open the hosted app and tap **Bank**.
 2. The published question bank and diagrams load automatically.
-3. Open **Study** and enter the number of questions you want. For the full exam simulation, enter 125. For a larger practice session, enter any number up to the available question count.
+3. Open **Study** and select the subunits you want to practise. The session uses every question in those subunits and shows the total before you start. For a timed exam simulation, select **Exam simulation** and choose 20, 50, 70, 100, or 125 questions. The default is 125.
 4. After a session, view the full questions, exhibits, and four answer choices. Use **Redo wrong questions** to retry only the questions you got wrong in that session. **Review last session** reopens the review.
 
 Progress, saved sessions, and podcast position are saved in the current browser. Your quiz timer uses elapsed wall-clock time, including when the app is in the background or a session is saved and exited. Progress is a study metric. It does not calculate the official CIA scaled exam score.

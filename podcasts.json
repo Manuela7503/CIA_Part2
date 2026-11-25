@@ -543,12 +543,30 @@
   ],
   "recordings": [
     {
+      "title": "Unit 1: Digital Book",
+      "file": "podcasts/Part2_U1.m4a",
+      "ready": true,
+      "topics": ["1"]
+    },
+    {
       "title": "Unit 1: Business Exam Traps",
-      "file": "podcasts/CIA_Part_2_Business_Exam_Traps.m4a",
+      "file": "podcasts/CIA_Part_2_Unit_1_All.m4a",
       "ready": true,
       "topics": [
         "1"
       ]
+    },
+    {
+      "title": "Unit 1: Practice Questions",
+      "file": "podcasts/Questions_Unit1_Podcast1.m4a",
+      "ready": true,
+      "topics": ["1"]
+    },
+    {
+      "title": "Unit 2: Digital Book",
+      "file": "podcasts/Part2_U2.m4a",
+      "ready": true,
+      "topics": ["2"]
     }
   ]
 }
