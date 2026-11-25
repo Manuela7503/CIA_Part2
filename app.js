@@ -232,11 +232,11 @@ async function attachImage(parent, name, alt, zoom = false) {
     }
   }
   if (!parent.isConnected) return;
-  if (!url) {
-    parent.append(element('span', 'Image unavailable. Import the ZIP to add it.', 'muted'));
-    return;
-  }
+  url ??= new URL(name, location.href).href;
   const img = element('img', null, 'figure');
+  img.addEventListener('error', () => {
+    (zoom ? img.parentElement : img)?.replaceWith(element('span', 'Image unavailable. Add it from the Bank tab.', 'muted'));
+  }, {once:true});
   img.src = url;
   img.alt = alt;
   if (zoom) {
@@ -503,16 +503,17 @@ function renderEpisodes() {
   const container = dom('episodes');
   container.replaceChildren();
   if (!selected) { container.append(element('p','Podcast list unavailable. Reload to try again.','muted')); return; }
-  const uploads = localTracks.filter(track => track.topics.some(id => id.split('.')[0] === String(selected.unit)));
-  const tracks = [...uploads, ...selected.tracks];
+  const uploads = [...localTracks, ...(menu.recordings ?? [])].filter(track =>
+    track.ready && track.topics.some(id => id.split('.')[0] === String(selected.unit)));
+  const tracks = [...new Map([...uploads, ...selected.tracks].map(track => [track.file, track])).values()];
   const available = tracks.filter(t => t.ready);
   if (available.length) container.append(button('Play available episodes', () => loadTrack(available,0)));
   for (const track of tracks) {
     const row = element('div',null,'episode');
     const title = element('span');
-    const links = track.local ? track.topics.filter(id => id.split('.')[0] === String(selected.unit)).map(id =>
+    const links = track.topics ? track.topics.filter(id => id.split('.')[0] === String(selected.unit)).map(id =>
       id.includes('.') ? selected.tracks.find(t => t.id === id)?.title ?? id : 'Whole Unit ' + id) : [];
-    title.append(element('strong',track.title),element('small',track.local ? links.join(' · ') : track.ready ? 'Available' : 'Coming soon'));
+    title.append(element('strong',track.title),element('small',links.length ? links.join(' · ') : track.ready ? 'Available' : 'Coming soon'));
     row.append(title);
     if (track.ready) row.append(button('Play',()=>loadTrack(available,available.indexOf(track))));
     container.append(row);
@@ -629,10 +630,21 @@ dom('image-file').addEventListener('change', async event => {
 });
 
 refresh();
+let localBank;
 try {
   const file = await storedGet('questions');
-  if (file) setBank(parseQuestions(JSON.stringify(file)));
+  if (file) localBank = parseQuestions(JSON.stringify(file));
 } catch { dom('import-status').textContent = 'This browser could not read saved study files. You can try importing again.'; }
+if (localBank) {
+  setBank(localBank);
+} else {
+  try {
+    const response = await fetch('./questions_part2.json');
+    if (response.ok) setBank(parseQuestions(await response.text()));
+  } catch {
+    dom('import-status').textContent = 'Could not load the hosted question bank. Reload or import a study file.';
+  }
+}
 try {
   const recordings = await storedGet('podcast-recordings');
   if (Array.isArray(recordings)) localTracks = recordings;
