@@ -1,4 +1,4 @@
-import { isImage, parseQuestions, readImport, storedGet, storedPut } from './bank.js';
+import { isImage, parseQuestions } from './bank.js';
 
 const dom = id => document.getElementById(id);
 function element(tag, value, className) {
@@ -30,13 +30,10 @@ let bank = [];
 let questionsById = new Map();
 let groups = new Map();
 let picked = new Set();
-const imageURLs = new Map();
+let bankStatus = 'Loading questions…';
 let menu = {units:[]};
 let playlist = [];
 let episodeIndex = 0;
-let audioURL;
-let playbackRequest = 0;
-let localTracks = [];
 const audio = dom('audio');
 let timer;
 
@@ -72,7 +69,7 @@ function setBank(rows) {
   refresh();
 }
 function show(page) {
-  for (const name of ['study','listen','progress','data']) dom(name).hidden = name !== page;
+  for (const name of ['study','listen','progress']) dom(name).hidden = name !== page;
   for (const item of document.querySelectorAll('[data-page]')) {
     if (item.dataset.page === page) item.setAttribute('aria-current', 'page');
     else item.removeAttribute('aria-current');
@@ -147,11 +144,11 @@ function refresh() {
   dom('all-questions').textContent = current === 'exam' ? 'Use maximum' : 'Use all available';
   dom('all-questions').disabled = !count;
   dom('exam-note').textContent = '50 / 40 / 10 blueprint · 1.2 minutes per question. Full exam format: 125 questions in 150 minutes.';
-  dom('setup-note').textContent = !bank.length ? 'Import the question bank to start studying.' :
+  dom('setup-note').textContent = !bank.length ? bankStatus :
     count ? (current === 'exam' ? 'Maximum with the exam blueprint: ' : 'Questions available: ') + number(count) : 'No questions available for this session.';
   const start = dom('start');
-  start.textContent = !bank.length ? 'Import question bank' : ({practice:'Start practice', exam:'Start exam simulation', missed:'Review missed questions'})[current];
-  start.disabled = Boolean(bank.length && !count);
+  start.textContent = ({practice:'Start practice', exam:'Start exam simulation', missed:'Review missed questions'})[current];
+  start.disabled = !count;
   const resume = dom('resume-session');
   resume.replaceChildren();
   if (session && bank.length) resume.append(button('Resume saved session', resumeQuiz, 'primary'));
@@ -167,7 +164,7 @@ function shuffled(items) {
 }
 function start(e) {
   e.preventDefault();
-  if (!bank.length) return show('data');
+  if (!bank.length) return;
   if (session && !window.confirm('Replace your saved session with a new one?')) return;
   const type = mode();
   const size = dom('amount').valueAsNumber;
@@ -222,20 +219,12 @@ function answer(letter) {
   if (current.type === 'exam') dom('choice-' + letter)?.focus();
   else dom('feedback')?.focus();
 }
-async function attachImage(parent, name, alt, zoom = false) {
-  let url = imageURLs.get(name);
-  if (!url) {
-    const blob = await storedGet(name).catch(() => null);
-    if (blob instanceof Blob) {
-      url = URL.createObjectURL(blob);
-      imageURLs.set(name, url);
-    }
-  }
+function attachImage(parent, name, alt, zoom = false) {
   if (!parent.isConnected) return;
-  url ??= new URL(name, location.href).href;
+  const url = new URL(name, location.href).href;
   const img = element('img', null, 'figure');
   img.addEventListener('error', () => {
-    (zoom ? img.parentElement : img)?.replaceWith(element('span', 'Image unavailable. Add it from the Bank tab.', 'muted'));
+    (zoom ? img.parentElement : img)?.replaceWith(element('span', 'Image unavailable.', 'muted'));
   }, {once:true});
   img.src = url;
   img.alt = alt;
@@ -411,7 +400,7 @@ function renderResults() {
 function renderProgress() {
   const root = dom('progress-content');
   root.replaceChildren(element('h2','Coverage by unit'));
-  if (!bank.length) root.append(element('p','Import a question bank to see your progress.', 'muted'),button('Open question bank',()=>show('data')));
+  if (!bank.length) root.append(element('p', bankStatus, 'muted'));
   for (const [unit, group] of groups) {
     const viewed = bank.filter(q => q.unit_number === unit && Object.hasOwn(history,q.id));
     const [hits, attempts] = analytics(viewed.map(q => history[q.id]));
@@ -421,89 +410,12 @@ function renderProgress() {
   }
 }
 
-function selectedPodcastTopics() {
-  return [...dom('podcast-topics').querySelectorAll('input:checked')].map(input => input.value);
-}
-function renderPodcastTopics() {
-  const target = dom('podcast-topics');
-  target.replaceChildren();
-  for (const unit of menu.units) {
-    const group = element('details');
-    const summary = element('summary', unit.unit + '. ' + unit.title);
-    group.append(summary);
-    const add = (id, title, className = '') => {
-      const label = element('label', null, 'topic-row ' + className);
-      const input = element('input');
-      input.type = 'checkbox';
-      input.value = id;
-      label.append(input, element('span', title));
-      group.append(label);
-    };
-    add(String(unit.unit), 'Whole Unit ' + unit.unit);
-    for (const track of unit.tracks) add(track.id, track.title, 'subtopic');
-    group.addEventListener('change', e => {
-      const boxes = [...group.querySelectorAll('input')];
-      const [whole, ...subunits] = boxes;
-      if (e.target === whole && whole.checked) subunits.forEach(box => { box.checked = false; });
-      else if (e.target.checked) whole.checked = false;
-      dom('save-podcast').disabled = selectedPodcastTopics().length === 0;
-      const count = boxes.filter(box => box.checked).length;
-      summary.textContent = unit.unit + '. ' + unit.title + (count ? ' · ' + count + ' selected' : '');
-    });
-    target.append(group);
-  }
-  if (target.firstElementChild) target.firstElementChild.open = true;
-}
-dom('podcast-file').addEventListener('change', () => {
-  const file = dom('podcast-file').files[0];
-  dom('podcast-details').hidden = !file;
-  dom('podcast-status').textContent = menu.units.length ? '' : 'The topic list is unavailable. Reload to try again.';
-  dom('save-podcast').disabled = true;
-  if (!file) return;
-  dom('podcast-title').value = file.name.replace(/\.[^.]+$/, '').slice(0,100);
-  renderPodcastTopics();
-});
-dom('podcast-form').addEventListener('submit', async event => {
-  event.preventDefault();
-  const select = dom('podcast-file');
-  const status = dom('podcast-status');
-  const file = select.files[0];
-  const topics = selectedPodcastTopics();
-  if (!file || !topics.length) return;
-  if (!file.size || !(/\.(mp3|m4a|aac|mp4|wav|ogg|opus|webm|flac)$/i.test(file.name) || file.type.startsWith('audio/'))) {
-    status.textContent = 'Choose a supported audio file, such as MP3 or M4A.';
-    return;
-  }
-  const track = {
-    title: dom('podcast-title').value.trim() || file.name,
-    file: 'podcast:' + crypto.randomUUID(),
-    topics,
-    local:true,
-    ready:true,
-  };
-  select.disabled = true;
-  dom('save-podcast').disabled = true;
-  status.textContent = 'Saving audio on this device…';
-  try {
-    const recordings = [...localTracks, track];
-    await storedPut([[track.file, file], ['podcast-recordings', recordings]]);
-    localTracks = recordings;
-    dom('podcast-unit').value = topics[0].split('.')[0];
-    renderEpisodes();
-    select.value = '';
-    dom('podcast-details').hidden = true;
-    status.textContent = 'Podcast saved. It appears in every selected unit.';
-  } catch {
-    status.textContent = 'Could not save the audio. Check available space on this device and try again.';
-    dom('save-podcast').disabled = false;
-  } finally { select.disabled = false; }
-});
 function renderEpisodes() {
   const selected = menu.units.find(u => String(u.unit) === dom('podcast-unit').value);
   const container = dom('episodes');
   container.replaceChildren();
   if (!selected) { container.append(element('p','Podcast list unavailable. Reload to try again.','muted')); return; }
-  const uploads = [...localTracks, ...(menu.recordings ?? [])].filter(track =>
+  const uploads = (menu.recordings ?? []).filter(track =>
     track.ready && track.topics.some(id => id.split('.')[0] === String(selected.unit)));
   const tracks = [...new Map([...uploads, ...selected.tracks].map(track => [track.file, track])).values()];
   const available = tracks.filter(t => t.ready);
@@ -519,22 +431,9 @@ function renderEpisodes() {
     container.append(row);
   }
 }
-async function loadTrack(tracks, index) {
-  if (!tracks[index]) return;
-  const request = ++playbackRequest;
+function loadTrack(tracks, index) {
   const item = tracks[index];
-  let currentSource;
-  if (item.local) {
-    const blob = await storedGet(item.file).catch(() => null);
-    if (request !== playbackRequest) return;
-    if (!(blob instanceof Blob)) {
-      dom('podcast-status').textContent = 'This recording is missing. Upload the audio file again.';
-      return;
-    }
-    currentSource = URL.createObjectURL(blob);
-  } else {
-    currentSource = new URL(item.file, location.href).href;
-  }
+  if (!item) return;
   audio.pause();
   playlist = tracks;
   episodeIndex = index;
@@ -542,9 +441,7 @@ async function loadTrack(tracks, index) {
   dom('track-title').textContent = item.title;
   dom('audio-status').textContent = '';
   dom('next-track').disabled = index + 1 >= tracks.length;
-  audio.src = currentSource;
-  if (audioURL) URL.revokeObjectURL(audioURL);
-  audioURL = item.local ? currentSource : undefined;
+  audio.src = new URL(item.file, location.href).href;
   audio.playbackRate = Number(dom('speed').value);
   audio.play().catch(() => { dom('audio-status').textContent = 'Tap play to start audio.'; });
 }
@@ -580,75 +477,17 @@ for (const control of document.querySelectorAll('[data-topics]')) control.addEve
   }
   refresh();
 });
-dom('bank-file').addEventListener('change', async e => {
-  const input = e.target;
-  if (!input.files.length) return;
-  if (session && !window.confirm('Finish or discard your saved session before changing the question bank. Discard it now?')) { input.value = ''; return; }
-  input.disabled = true;
-  dom('import-status').textContent = 'Importing…';
-  try {
-    const imported = await readImport(input.files);
-    if (!imported.has('questions')) throw new Error('Choose a ZIP or JSON containing the question bank.');
-    await storedPut(imported);
-    session = null;
-    clearInterval(timer);
-    dom('quiz').hidden = true;
-    dom('results').hidden = true;
-    dom('setup').hidden = false;
-    save();
-    for (const url of imageURLs.values()) URL.revokeObjectURL(url);
-    imageURLs.clear();
-    const importedBank = imported.get('questions');
-    if (importedBank) setBank(importedBank);
-    const images = [...imported.keys()].filter(isImage).length;
-    dom('import-status').textContent = (importedBank ? number(importedBank.length) + ' questions' : 'Question bank retained') + ' · ' + images + ' images imported.';
-    if (importedBank) dom('import-status').append(' ', button('Go to study',()=>show('study')));
-    refresh();
-  } catch (error) { dom('import-status').textContent = error.message || 'Could not save the question bank.'; }
-  finally { input.disabled = false; input.value = ''; }
-});
-dom('image-file').addEventListener('change', async event => {
-  const input = event.target;
-  if (!input.files.length) return;
-  const status = dom('image-status');
-  input.disabled = true;
-  status.textContent = 'Importing images…';
-  try {
-    const images = await readImport(input.files, true);
-    const refs = new Set(bank.flatMap(q => [...(q.images ?? []), q.image, ...Object.values(q.options)].filter(isImage)));
-    const matched = [...images.keys()].filter(name => refs.has(name)).length;
-    await storedPut(images);
-    for (const name of images.keys()) {
-      if (imageURLs.has(name)) URL.revokeObjectURL(imageURLs.get(name));
-      imageURLs.delete(name);
-    }
-    if (session && !dom('quiz').hidden) renderQuestion();
-    if (lastReview && !dom('results').hidden) renderResults();
-    status.textContent = images.size + ' images saved.' + (bank.length ? ' ' + matched + ' match filenames in this bank.' : ' Import the question bank when ready.');
-  } catch (error) { status.textContent = error.message || 'Could not save images.'; }
-  finally { input.disabled = false; input.value = ''; }
-});
-
 refresh();
-let localBank;
 try {
-  const file = await storedGet('questions');
-  if (file) localBank = parseQuestions(JSON.stringify(file));
-} catch { dom('import-status').textContent = 'This browser could not read saved study files. You can try importing again.'; }
-if (localBank) {
-  setBank(localBank);
-} else {
-  try {
-    const response = await fetch('./questions_part2.json');
-    if (response.ok) setBank(parseQuestions(await response.text()));
-  } catch {
-    dom('import-status').textContent = 'Could not load the hosted question bank. Reload or import a study file.';
-  }
+  const response = await fetch('./questions_part2.json');
+  if (!response.ok) throw new Error('Question bank unavailable');
+  setBank(parseQuestions(await response.text()));
+  if (!dom('progress').hidden) renderProgress();
+} catch {
+  bankStatus = 'Could not load questions. Check your connection and reload.';
+  refresh();
+  if (!dom('progress').hidden) renderProgress();
 }
-try {
-  const recordings = await storedGet('podcast-recordings');
-  if (Array.isArray(recordings)) localTracks = recordings;
-} catch {}
 try {
   const res = await fetch('./podcasts.json');
   if (!res.ok) throw new Error('Podcast list unavailable');
