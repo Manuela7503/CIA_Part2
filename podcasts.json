@@ -540,5 +540,15 @@
         }
       ]
     }
+  ],
+  "recordings": [
+    {
+      "title": "Unit 1: Business Exam Traps",
+      "file": "podcasts/CIA_Part_2_Business_Exam_Traps.m4a",
+      "ready": true,
+      "topics": [
+        "1"
+      ]
+    }
   ]
 }
