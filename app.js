@@ -389,23 +389,28 @@ function renderResults() {
 
 function renderEpisodes() {
   const selected = menu.units.find(u => String(u.unit) === dom('podcast-unit').value);
+  const units = selected ? [selected] : menu.units;
   const container = dom('episodes');
   container.replaceChildren();
-  if (!selected) { container.append(element('p','Podcast list unavailable. Reload to try again.','muted')); return; }
+  if (!units.length) { container.append(element('p','Podcast list unavailable. Reopen Podcasts to try again.','muted')); return; }
+  const unitIds = new Set(units.map(u => String(u.unit)));
+  const matchesUnit = id => unitIds.has(id.split('.')[0]);
+  const unitTracks = units.flatMap(u => u.tracks);
   const uploads = (menu.recordings ?? []).filter(track =>
-    track.ready && track.topics.some(id => id.split('.')[0] === String(selected.unit)));
+    track.ready && track.topics.some(matchesUnit));
   const uploadedFiles = new Set(uploads.map(track => track.file));
   const tracks = [...new Map(
-    [...uploads, ...selected.tracks.filter(track => !uploadedFiles.has(track.file))]
+    [...uploads, ...unitTracks.filter(track => !uploadedFiles.has(track.file) && (selected || track.ready))]
       .map(track => [track.file, track])
   ).values()];
   const available = tracks.filter(t => t.ready);
+  if (!tracks.length) container.append(element('p','No recordings are available yet.','muted'));
   if (available.length) container.append(button('Play available episodes', () => loadTrack(available,0)));
   for (const track of tracks) {
     const row = element('div',null,'episode');
     const title = element('span');
-    const links = track.topics ? track.topics.filter(id => id.split('.')[0] === String(selected.unit)).map(id =>
-      id.includes('.') ? selected.tracks.find(t => t.id === id)?.title ?? id : 'Whole Unit ' + id) : [];
+    const links = track.topics ? track.topics.filter(matchesUnit).map(id =>
+      id.includes('.') ? unitTracks.find(t => t.id === id)?.title ?? id : 'Whole Unit ' + id) : [];
     title.append(element('strong',track.title),element('small',links.length ? links.join(' · ') : track.ready ? 'Available' : 'Coming soon'));
     row.append(title);
     if (track.ready) row.append(button('Play',()=>loadTrack(available,available.indexOf(track))));
@@ -474,7 +479,9 @@ async function refreshPodcasts() {
     menu = await res.json();
     const picker = dom('podcast-unit');
     const selected = picker.value;
-    picker.replaceChildren(...menu.units.map(u => {
+    const all = element('option', 'All available episodes');
+    all.value = '';
+    picker.replaceChildren(all, ...menu.units.map(u => {
       const option = element('option', u.unit + '. ' + u.title);
       option.value = u.unit;
       option.selected = String(u.unit) === selected;

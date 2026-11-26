@@ -1,4 +1,4 @@
-const key = 'cia2-study-desk-v7';
+const key = 'cia2-study-desk-v8';
 const shell = ['./','./index.html','./styles.css','./app.js','./bank.js','./podcasts.json','./icon.svg','./manifest.webmanifest'];
 self.addEventListener('install', event => event.waitUntil(
   caches.open(key)
