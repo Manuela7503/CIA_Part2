@@ -74,6 +74,7 @@ function show(page) {
     if (item.dataset.page === page) item.setAttribute('aria-current', 'page');
     else item.removeAttribute('aria-current');
   }
+  if (page === 'listen') void refreshPodcasts();
   window.scrollTo(0, 0);
   dom('main').focus({preventScroll:true});
 }
@@ -465,15 +466,21 @@ try {
   bankStatus = 'Could not load questions. Check your connection and reload.';
   refresh();
 }
-try {
-  const res = await fetch('./podcasts.json');
-  if (!res.ok) throw new Error('Podcast list unavailable');
-  menu = await res.json();
-  dom('podcast-unit').replaceChildren(...menu.units.map(u => {
-    const option = element('option', u.unit + '. ' + u.title);
-    option.value = u.unit;
-    return option;
-  }));
-} catch {}
-renderEpisodes();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+async function refreshPodcasts() {
+  if (!menu.units.length) dom('episodes').textContent = 'Loading podcasts…';
+  try {
+    const res = await fetch('./podcasts.json', {cache:'no-cache'});
+    if (!res.ok) throw new Error('Podcast list unavailable');
+    menu = await res.json();
+    const picker = dom('podcast-unit');
+    const selected = picker.value;
+    picker.replaceChildren(...menu.units.map(u => {
+      const option = element('option', u.unit + '. ' + u.title);
+      option.value = u.unit;
+      option.selected = String(u.unit) === selected;
+      return option;
+    }));
+  } catch {}
+  renderEpisodes();
+}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'}).catch(()=>{});
