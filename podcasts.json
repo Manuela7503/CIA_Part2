@@ -549,13 +549,13 @@
       "topics": ["1"]
     },
     {
-      "title": "Unit 1: Business Exam Traps",
+      "title": "Unit 1: Questions Explained",
       "file": "podcasts/Questions_Part_2_Unit_1_All.m4a",
       "ready": true,
       "topics": ["1"]
     },
     {
-      "title": "Unit 1: Additional Questions Podcast",
+      "title": "Unit 1: Questions Explained - Option B",
       "file": "podcasts/Questions_Part_2_Unit_1_All_B.m4a",
       "ready": true,
       "topics": [
@@ -569,14 +569,20 @@
       "topics": ["2"]
     },
     {
-      "title": "Unit 2: Beating CIA Exam Audit Engagement Traps",
+      "title": "Unit 2: Questions Explained",
       "file": "podcasts/Questions_Part_2_Unit_2_All.m4a",
       "ready": true,
       "topics": ["2"]
     },
     {
-      "title": "Unit 2: Additional Questions Podcast",
+      "title": "Unit 2: Questions Explained - Option B",
       "file": "podcasts/Questions_Part_2_Unit_2_All_B.m4a",
+      "ready": true,
+      "topics": ["2"]
+    },
+    {
+      "title": "Unit 2: Questions Explained - Option C",
+      "file": "podcasts/Questions_Part_2_Unit_2_All_C.m4a",
       "ready": true,
       "topics": ["2"]
     }
